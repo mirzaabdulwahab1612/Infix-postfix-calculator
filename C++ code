@@ -1,0 +1,227 @@
+#include<stdlib.h>
+#include<iostream>
+#include<vector>
+#include<string>
+#include<stack>
+#include<sstream>
+using namespace std;
+vector<string> * ToPostFix(vector<string> temp);
+int check(string c);
+bool IsOperator(string c);
+bool IsOperand(string c);
+int EvaluatePostFix(vector<string> *temp);
+int calculate(int a, int b, string op);
+bool testcase();
+int main() {
+
+	//Testing the our code!
+	if (testcase())
+		cout << "Your code has passed the test. Congragulations!" << endl;
+	else
+		cout << "Test Failed!" << endl;
+
+	//Storing an array with arithmetic expression in a comma seperated format.
+
+	string expression = ("31,+,2,x,(,5,+,(,7,-,1,),),x,-4");
+	vector<string> *result;
+	vector<string> myExpression;
+	string temp;
+	int ans;
+	int i;
+
+	//Creating a string stream in order to push the string in the array. Doing this to handle more arithmetich operations on more than 1 digit.
+	
+	stringstream line(expression);
+	while (getline(line, temp, ',')) {
+		myExpression.push_back(temp);
+	}
+
+	//Displaying the expression that is to be solved.
+
+	cout << "Infix Notation:" << endl;
+	for (i = 0; i < myExpression.size(); i++)
+	{
+		cout << myExpression.at(i) << " ";
+	}
+
+	//Calling the postfix connverting function.
+
+	result = ToPostFix(myExpression);
+
+	
+
+	//Displaying the post-fix notation of the expression.
+
+	cout << endl << "Postfix Notation:" << endl;
+	for (i = 0; i < result->size(); i++)
+	{
+		cout << result->at(i) << " ";
+	}
+
+	//Calling the evaluation of the post-fix expression.
+
+	ans = EvaluatePostFix(result);
+	cout << endl << "The Evaluated result is: " << ans << endl;
+
+	system("pause");
+	return 0;
+}
+vector<string> * ToPostFix(vector<string> temp) {
+	stack<string> myStack;
+	vector <string> * convert = new vector<string>;
+	int i;
+	for (i = 0; i < temp.size(); i++) {
+		
+		//if operand than push it in the stack.
+
+		if (IsOperand(temp[i])) {
+			convert->push_back(temp[i]);
+		}
+
+		//if operator, than checking precedence if precedence is less than psuhing the operand to the output array.
+
+		else if (IsOperator(temp[i])) {
+			while (!myStack.empty() && check(temp[i]) <= check(myStack.top())) {
+				convert->push_back(myStack.top());
+				myStack.pop();
+			}
+			myStack.push(temp[i]);
+		}
+
+		//if opening bracket is read than push it in the stack straight forward.
+
+		else if (temp[i] == "(") {
+			myStack.push(temp[i]);
+		}
+		
+		//if closing bracket is read than push all the operands to the output array till the opening bracket occours.
+
+		else if (temp[i] == ")") {
+			while (!myStack.empty() && myStack.top() != "(") {
+				convert->push_back(myStack.top());
+				myStack.pop();
+			}
+			myStack.pop();
+		}
+	}
+
+	//moving the rest of operators to the output.
+
+	while (!myStack.empty()) {
+		convert->push_back(myStack.top());
+		myStack.pop();
+	}
+
+	//returning the output array.
+
+	return convert;
+}
+
+//Method to check the precedence of the operators.
+
+int check(string c) {
+	if (c == "+" || c == "-")
+		return 1;
+	else if (c == "x" || c == "/")
+		return 2;
+	return 0;
+}
+
+//method to check if the token is operand or not.
+
+bool IsOperand(string c) {
+	if (c.empty() || (!isdigit(c[0])) && (c[0] != '-') && (c[0] != '+'))
+		return false;
+	char *p;
+	strtol(c.c_str(), &p, 10);
+	return (*p == 0);
+}
+
+//checks if the token is operator or not.
+
+bool IsOperator(string c) {
+	if (c == "+" || c == "-" || c == "x" || c == "/")
+		return true;
+	return false;
+}
+
+//method that evaluates the post-fix expression.
+
+int EvaluatePostFix(vector<string> *temp) {
+	stack<int> sstack;
+	int i;
+	int result;
+	for (i = 0; i < temp->size(); i++) {
+
+		//if token is operand than push it in the stack.
+
+		if (IsOperand(temp->at(i)))
+			sstack.push(stoi(temp->at(i)));
+
+		//if the token is operator than perform the arithmetic expression.
+
+		else if (IsOperator(temp->at(i)) && sstack.size() >= 2) {
+			int a = (sstack.top());
+			sstack.pop();
+			int b = (sstack.top());
+			sstack.pop();
+			result = calculate(b, a, temp->at(i));
+			sstack.push(result);
+		}
+	}
+	return sstack.top();
+}
+
+//simple funtion that performs the arithmetic expression.
+
+int calculate(int a, int b, string op) {
+	if (op == "+") {
+		return a + b;
+	}
+	else if (op == "-") {
+		return a - b;
+	}
+		
+	else if (op == "x") {
+		return a*b;
+	}
+	else if (op == "/") {
+		return a / b;
+	}
+
+	return 0;
+}
+bool testcase() {
+	//In the test case i am using a hard coded expression, the result of which is already known and fed to the program
+	//The code compiles the resut through the functions and compares it with the known result, and returns true if same else false.
+
+	string expression = ("50,+,(,20,x,5,),+,60,x,(,3,+,1,x,4,),+,100,x,4");
+	vector<string> *result;
+	vector<string> myExpression;
+	string temp;
+	
+	//Compiled result.
+
+	int ans;
+	int i;
+
+	//known result
+
+	int knownresult = 970;
+
+	//Creating a string stream in order to push the string in the array. Doing this to handle more arithmetich operations on more than 1 digit.
+
+	stringstream line(expression);
+	while (getline(line, temp, ',')) {
+		myExpression.push_back(temp);
+	}
+	
+	result = ToPostFix(myExpression);
+	ans = EvaluatePostFix(result);
+
+	if (ans == knownresult)
+		return true;
+
+	return false;
+	
+}
